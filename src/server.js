@@ -19,12 +19,9 @@ const app = express();
 app.set('trust proxy', 1); // needed for correct req.ip behind a load balancer/proxy
 
 app.use(helmet());
-app.use(
-  cors({
-    origin: (process.env.CORS_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean),
-    credentials: true,
-  })
-);
+const rawOrigins = (process.env.CORS_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
+const allowAllOrigins = rawOrigins.length === 0 || rawOrigins.includes('*');
+app.use(cors({ origin: allowAllOrigins ? true : rawOrigins }));
 
 // Stripe requires the RAW body for signature verification, so this route
 // is mounted BEFORE express.json() and given its own raw parser.
